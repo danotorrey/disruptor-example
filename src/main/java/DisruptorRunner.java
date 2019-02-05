@@ -1,6 +1,5 @@
 import com.lmax.disruptor.BusySpinWaitStrategy;
 import com.lmax.disruptor.RingBuffer;
-import com.lmax.disruptor.WaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import com.lmax.disruptor.util.DaemonThreadFactory;
@@ -15,22 +14,23 @@ public class DisruptorRunner {
     private static Logger LOG = LogManager.getLogger(DisruptorRunner.class);
 
     public static void main(String[] args) {
+
+
+        // Initialize the disruptor.
         ThreadFactory threadFactory = DaemonThreadFactory.INSTANCE;
+        Disruptor<ValueEvent> disruptor = new Disruptor<ValueEvent>(ValueEvent.EVENT_FACTORY,
+                                                                    32,
+                                                                    threadFactory,
+                                                                    ProducerType.SINGLE,
+                                                                    new BusySpinWaitStrategy());
 
-        WaitStrategy waitStrategy = new BusySpinWaitStrategy();
-        Disruptor<ValueEvent> disruptor
-                = new Disruptor<ValueEvent>(ValueEvent.EVENT_FACTORY,
-                                            32,
-                                            threadFactory,
-                                            ProducerType.SINGLE,
-                                            waitStrategy);
-
+        // Set the consumer handler.
         disruptor.handleEventsWith(new SingleEventPrintConsumer().getEventHandler());
-
 
         RingBuffer<ValueEvent> ringBuffer = disruptor.start();
 
-        StopWatch stopWatch = new StopWatch( );
+        // Time the publish/consumption.
+        StopWatch stopWatch = new StopWatch();
         stopWatch.start();
 
         // Loop a bunch of times to simulate a stream of events coming in.
@@ -45,7 +45,6 @@ public class DisruptorRunner {
         }
 
         stopWatch.stop();
-
         LOG.info("Elapsed time [{}]", stopWatch.getTime());
     }
 }
