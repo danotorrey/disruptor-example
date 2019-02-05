@@ -4,6 +4,7 @@ import com.lmax.disruptor.WaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import com.lmax.disruptor.util.DaemonThreadFactory;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,14 +20,21 @@ public class DisruptorRunner {
         WaitStrategy waitStrategy = new BusySpinWaitStrategy();
         Disruptor<ValueEvent> disruptor
                 = new Disruptor<ValueEvent>(ValueEvent.EVENT_FACTORY,
-                                            16,
+                                            32,
                                             threadFactory,
                                             ProducerType.SINGLE,
                                             waitStrategy);
 
+        disruptor.handleEventsWith(new SingleEventPrintConsumer().getEventHandler());
+
+
         RingBuffer<ValueEvent> ringBuffer = disruptor.start();
 
-        for (int eventCount = 0; eventCount < 200; eventCount++) {
+        StopWatch stopWatch = new StopWatch( );
+        stopWatch.start();
+
+        // Loop a bunch of times to simulate a stream of events coming in.
+        for (int eventCount = 0; eventCount < 200000; eventCount++) {
 
             long nextSequence = ringBuffer.next();
             ValueEvent valueEvent = ringBuffer.get(nextSequence);
@@ -36,6 +44,8 @@ public class DisruptorRunner {
             LOG.info("Publishing eventCount [{}] sequence [{}]", eventCount, nextSequence);
         }
 
-        LOG.info("Buffer size [{}]", ringBuffer.getBufferSize());
+        stopWatch.stop();
+
+        LOG.info("Elapsed time [{}]", stopWatch.getTime());
     }
 }
