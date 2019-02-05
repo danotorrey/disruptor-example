@@ -18,21 +18,22 @@ public class DisruptorRunner {
 
         WaitStrategy waitStrategy = new BusySpinWaitStrategy();
         Disruptor<ValueEvent> disruptor
-                = new Disruptor<>(
-                ValueEvent.EVENT_FACTORY,
-                16,
-                threadFactory,
-                ProducerType.SINGLE,
-                waitStrategy);
+                = new Disruptor<ValueEvent>(ValueEvent.EVENT_FACTORY,
+                                            16,
+                                            threadFactory,
+                                            ProducerType.SINGLE,
+                                            waitStrategy);
 
         RingBuffer<ValueEvent> ringBuffer = disruptor.start();
 
-        for (int eventCount = 0; eventCount < 32; eventCount++) {
-            long sequenceId = ringBuffer.next();
-            ValueEvent valueEvent = ringBuffer.get(sequenceId);
+        for (int eventCount = 0; eventCount < 200; eventCount++) {
+
+            long nextSequence = ringBuffer.next();
+            ValueEvent valueEvent = ringBuffer.get(nextSequence);
             valueEvent.setValue(eventCount);
-            ringBuffer.publish(sequenceId);
-            LOG.info("Publishing eventCount [{}] sequenceId [{}]", eventCount, sequenceId);
+            ringBuffer.publish(nextSequence);
+
+            LOG.info("Publishing eventCount [{}] sequence [{}]", eventCount, nextSequence);
         }
 
         LOG.info("Buffer size [{}]", ringBuffer.getBufferSize());

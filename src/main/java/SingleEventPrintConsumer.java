@@ -7,9 +7,10 @@ public class SingleEventPrintConsumer {
     private static Logger LOG = LogManager.getLogger(SingleEventPrintConsumer.class);
 
     public EventHandler<ValueEvent>[] getEventHandler() {
-        EventHandler<ValueEvent> eventHandler
-                = (event, sequence, endOfBatch)
+
+        EventHandler<ValueEvent> eventHandler = (event, sequence, endOfBatch)
                 -> print(event.getValue(), sequence);
+
         return new EventHandler[]{eventHandler};
     }
 
