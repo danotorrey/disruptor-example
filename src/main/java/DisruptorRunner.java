@@ -15,7 +15,6 @@ public class DisruptorRunner {
 
     public static void main(String[] args) {
 
-
         // Initialize the disruptor.
         ThreadFactory threadFactory = DaemonThreadFactory.INSTANCE;
         Disruptor<ValueEvent> disruptor = new Disruptor<ValueEvent>(ValueEvent.EVENT_FACTORY,
